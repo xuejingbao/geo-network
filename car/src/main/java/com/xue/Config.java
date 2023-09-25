@@ -42,6 +42,13 @@ public enum Config {
 
     private Integer stationId = 201;
 
+    private Integer gpsTcpPort = 1000;
+
+    private Boolean baseStation = false;
+
+    private Position position = new Position();
+
+
     public Config loadConfig(String[] args) throws IOException {
         for (int i = 0; i < args.length; i++) {
             String argItem = args[i];
@@ -69,6 +76,14 @@ public enum Config {
             } else if ("--stationId".equals(argItem)) {
                 i++;
                 stationId = Integer.parseInt(args[i]);
+            } else if ("--base".equals(argItem)) {
+                baseStation = true;
+            } else if ("--lon".equals(argItem)){
+                i++;
+                position.setLongitude(Double.parseDouble(args[i]));
+            } else if ("--lat".equals(argItem)){
+                i++;
+                position.setLatitude(Double.parseDouble(args[i]));
             }
         }
         if (radius == null) {

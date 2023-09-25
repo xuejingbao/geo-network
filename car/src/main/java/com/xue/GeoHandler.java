@@ -1,5 +1,6 @@
 package com.xue;
 
+import com.alibaba.fastjson.JSONObject;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufUtil;
 import io.netty.channel.ChannelHandler;
@@ -7,6 +8,10 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.channel.socket.DatagramPacket;
 import lombok.extern.slf4j.Slf4j;
+
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * @author xuejingbao
@@ -21,9 +26,9 @@ public class GeoHandler extends SimpleChannelInboundHandler<DatagramPacket> {
         ByteBuf content = msg.content();
         byte aByte = content.getByte(0);
         int readableBytes = content.readableBytes();
-        if (readableBytes > 101){
-            if (log.isDebugEnabled()){
-                log.debug("不符合标准长度包，丢弃：{}",ByteBufUtil.hexDump(content));
+        if (readableBytes > 101) {
+            if (log.isDebugEnabled()) {
+                log.debug("不符合标准长度包，丢弃：{}", ByteBufUtil.hexDump(content));
             }
             return;
         }
@@ -33,23 +38,43 @@ public class GeoHandler extends SimpleChannelInboundHandler<DatagramPacket> {
             case 1:
                 SimpleDenm simpleDenm = new SimpleDenm(contentByte);
                 if (!Config.INSTANCE.getStationId().equals(simpleDenm.stationId)) {
-                    log.info("收到别人的denm，亮灯:{},{}", simpleDenm.longitude, simpleDenm.latitude);
+                    log.info("收到别人的denm，转向:{},{}", simpleDenm.longitude, simpleDenm.latitude);
                     // LightControl.INSTANCE.lightClose();
+                    Position position = GpsPosition.INSTANCE.getPosition();
+                    if (position.getLongitude() == null) {
+                        return;
+                    }
+                    List reLs = Arrays.asList(
+                            1,
+                            position.getLongitude(),
+                            position.getLatitude(),
+                            simpleDenm.longitude,
+                            simpleDenm.latitude,
+                            simpleDenm.semiMajorConfidence
+                    );
+                    byte[] reBytes = JSONObject.toJSONString(reLs).getBytes(StandardCharsets.UTF_8);
+                    GpsGetterHandler.sendAllChannel(reBytes);
                 } else {
-                    if (log.isDebugEnabled()){
+                    if (log.isDebugEnabled()) {
                         log.debug("收到自己的denm:{},{}", simpleDenm.longitude, simpleDenm.latitude);
                     }
                 }
                 break;
             case 2:
                 SimpleCam simpleCam = new SimpleCam(contentByte);
-                if (log.isDebugEnabled()){
-                    log.debug("收到cam:{},{}", simpleCam.longitude, simpleCam.latitude);
+                if (log.isDebugEnabled()) {
+                    if (!Config.INSTANCE.getStationId().equals(simpleCam.stationId)) {
+                        log.debug("收到自己的cam:{},{}", simpleCam.longitude, simpleCam.latitude);
+                    } else {
+                        log.debug("收到别人的cam:{},{}", simpleCam.longitude, simpleCam.latitude);
+                    }
                 }
                 break;
             default:
                 break;
         }
+
+
     }
 
 }

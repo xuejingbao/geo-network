@@ -11,7 +11,7 @@ public class GpsSender implements Runnable {
 
     @Override
     public void run() {
-        Position position = MqttLocation.INSTANCE.getPosition();
+        Position position = GpsPosition.INSTANCE.getPosition();
         if (log.isDebugEnabled()){
             log.debug("获取位置信息：{}", position);
         }

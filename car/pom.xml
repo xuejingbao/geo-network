@@ -40,11 +40,11 @@
             <artifactId>commons-lang3</artifactId>
             <version>3.12.0</version>
         </dependency>
-        <dependency>
+        <!--<dependency>
             <groupId>com.pi4j</groupId>
             <artifactId>pi4j-core</artifactId>
             <version>1.4</version>
-        </dependency>
+        </dependency>-->
     </dependencies>
 
     <build>
