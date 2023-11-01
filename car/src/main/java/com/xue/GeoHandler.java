@@ -38,7 +38,9 @@ public class GeoHandler extends SimpleChannelInboundHandler<DatagramPacket> {
             case 1:
                 SimpleDenm simpleDenm = new SimpleDenm(contentByte);
                 if (!Config.INSTANCE.getStationId().equals(simpleDenm.stationId)) {
-                    log.info("收到别人的denm，转向:{},{}", simpleDenm.longitude, simpleDenm.latitude);
+                    double lon = simpleDenm.longitude / 1e7;
+                    double lat = simpleDenm.latitude / 1e7;
+                    log.info("收到别人的denm，转向:{},{}", lon, lat);
                     // LightControl.INSTANCE.lightClose();
                     Position position = GpsPosition.INSTANCE.getPosition();
                     if (position.getLongitude() == null) {
@@ -46,11 +48,11 @@ public class GeoHandler extends SimpleChannelInboundHandler<DatagramPacket> {
                     }
                     List reLs = Arrays.asList(
                             1,
+                            simpleDenm.semiMajorConfidence,
                             position.getLongitude(),
                             position.getLatitude(),
-                            simpleDenm.longitude,
-                            simpleDenm.latitude,
-                            simpleDenm.semiMajorConfidence
+                            lon,
+                            lat
                     );
                     byte[] reBytes = JSONObject.toJSONString(reLs).getBytes(StandardCharsets.UTF_8);
                     GpsGetterHandler.sendAllChannel(reBytes);

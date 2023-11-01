@@ -28,7 +28,7 @@ public class Main {
                 System.out.println("发送："+position);
                 UdpSender.sendMessage(MessageFactory.getCam(position).asByteArray());
                 UdpSender.sendMessage(MessageFactory.getDenm(position).asByteArray());
-            }, 2, 1, TimeUnit.SECONDS);
+            }, 2, 100, TimeUnit.MILLISECONDS);
             return;
         }
         // 开启位置信息获取
